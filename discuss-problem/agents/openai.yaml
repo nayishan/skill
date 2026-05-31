@@ -1,0 +1,4 @@
+interface:
+  display_name: "Discuss Problem"
+  short_description: "Dynamic problem discussion maps"
+  default_prompt: "Use $discuss-problem to help me clarify and discuss this problem before deciding what to do."
