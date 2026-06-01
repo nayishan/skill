@@ -206,6 +206,14 @@ Input / Trigger
 
 Revise the map as the discussion evolves. Keep `Decision Log` append-only for meaningful decisions; other sections may be rewritten to reflect the current model.
 
+## Handoff To Grill Me
+
+When the discussion has produced a concrete plan, design, proposal, implementation strategy, or decision candidate and the user wants it challenged or stress-tested, switch to `$grill-me`.
+
+Use `$grill-me` when the next useful move is to ask one hard question at a time, walk the decision tree, expose weak assumptions, test dependencies, or identify risks before execution.
+
+Do not continue open-ended problem discussion when the problem is already framed and the user wants the plan challenged.
+
 ## Output Formats
 
 Choose the smallest useful output for the current state:
