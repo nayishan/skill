@@ -17,6 +17,10 @@ Before editing code, read the relevant requirement files under:
 
 Then audit the requested behavior. Do not assume the requirement is safe or complete.
 
+Default to audit and analysis only. Do not write code, create commits, or modify
+experiment logic unless the user explicitly asks for implementation after seeing
+the audit.
+
 ## Baseline Discipline
 
 Use the user's requested remote when specified. If unspecified, prefer the GitHub remote branch named `umbra-poc-pgmaster-rebase-20260604`; if no GitHub remote exists in the current repo, report that and use the configured remote only after the user confirms or local context makes it clearly intended.
@@ -53,6 +57,9 @@ The audit must answer:
 If the requirement conflicts with existing Umbra behavior or would require broad architectural changes, stop and report the conflict instead of forcing an implementation.
 
 ## Implementation Rules
+
+Only implement after the user explicitly approves moving beyond audit and
+analysis.
 
 Keep changes tightly scoped to the experiment.
 
