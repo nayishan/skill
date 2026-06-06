@@ -1,0 +1,6 @@
+interface:
+  display_name: "Umbra Series Narrative"
+  short_description: "Frame Umbra patch order"
+  default_prompt: "Use $umbra-series-narrative with $discuss-problem to decide how the next Umbra patch fits into the whole RFC series."
+policy:
+  allow_implicit_invocation: true
