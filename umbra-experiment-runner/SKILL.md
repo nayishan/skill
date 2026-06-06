@@ -44,6 +44,58 @@ Linux base dir: /home/jiamingwei
 
 For correctness experiments, prefer small deterministic data sets. For performance experiments, use the established Linux client matrix when comparing to prior TPC-C results.
 
+## PostgreSQL Build Recipe
+
+When a runner or smoke test is asked to build PostgreSQL from source, follow the
+local `pgmake` convention unless the experiment explicitly requires a different
+build. Do not treat a bare incremental `make && make install` as equivalent when
+debugging crashes that may involve generated headers or stale objects.
+
+Required environment shape:
+
+```bash
+PGCODE=/path/to/postgres-source
+PGHOME=/path/to/install-prefix
+PGLOG=/path/to/build-logs
+```
+
+Validate `PGCODE` exists, create `PGHOME` and `PGLOG` if missing, and run from
+`$PGCODE`. Pass experiment-specific configure flags such as `--with-umbra` as
+the final extra argument.
+
+macOS/Darwin configure baseline:
+
+```bash
+./configure --prefix="$PGHOME" \
+  --enable-cassert --enable-tap-tests --without-icu \
+  --with-libs=/usr/local/lib --with-includes=/usr/local/include \
+  CFLAGS='-g -O0 -fno-omit-frame-pointer' \
+  LDFLAGS='-Wl,-rpath,@executable_path/../lib' \
+  $EXTRA_CONFIGURE_FLAGS | tee "$PGLOG/configure.out"
+```
+
+Linux configure baseline:
+
+```bash
+./configure --prefix="$PGHOME" \
+  --with-zlib --enable-nls --enable-integer-datetimes --enable-cassert \
+  --with-libxml --with-uuid=e2fs --enable-debug \
+  CFLAGS='-O0 -g' \
+  $EXTRA_CONFIGURE_FLAGS | tee "$PGLOG/configure.out"
+```
+
+Full build/install baseline:
+
+```bash
+make world | tee "$PGLOG/compile.log"
+rm -rf "$PGHOME"/*
+make install-world | tee "$PGLOG/install.log"
+```
+
+Use this full recipe before concluding that a bootstrap or startup crash is an
+Umbra runtime bug. Incremental builds are acceptable only for quick local script
+iteration and must be reported as incremental in the final summary.
+
 ## Linux Path Convention
 
 For Linux paper runners, follow the path style from Experiment 1
