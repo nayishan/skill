@@ -1,0 +1,4 @@
+interface:
+  display_name: "Umbra Experiment Runner"
+  short_description: "Design correctness-first Umbra experiment scripts"
+  default_prompt: "Use $umbra-experiment-runner to write a correctness-first Umbra experiment runner and one-file result summary."
