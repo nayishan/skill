@@ -78,6 +78,26 @@ split it.
 If a patch cannot state its invariant simply, either split it further or simplify
 the implementation.
 
+## Patch Size Budget
+
+Use `effective changed lines` as a review-weight proxy when shaping patches.
+Start with `git diff --numstat` and count insertions plus deletions.
+
+The target range is:
+
+- 300-500 effective changed lines: preferred review size.
+- 500-800 effective changed lines: acceptable when the patch has one clear
+  correctness invariant.
+- 800-1200 effective changed lines: large but acceptable only when the code is
+  highly concentrated and does not introduce cross-layer semantics.
+- 1200-2000 effective changed lines: reconsider the split; keep it only if the
+  patch proves it cannot be split without weakening correctness or readability.
+- more than 2000 effective changed lines: not acceptable; split the patch.
+
+Treat the line budget as a reviewability constraint, not a substitute for
+architecture.  A small patch with mixed ownership is still a bad patch, and a
+larger patch may be acceptable only when it preserves one local invariant.
+
 ## Current Umbra Split Direction
 
 Prefer these review units unless the code has materially changed:
