@@ -11,8 +11,12 @@ Use this checklist for PVLDB experiment requirements before editing Umbra code.
 
 ## Baseline Alignment
 
-- Fetch the protected remote baseline `umbra-poc-pgmaster-rebase-20260604`.
-- Record the baseline SHA before work.
+- Fetch the protected Gitee `postgres` baseline
+  `origin/umbra-poc-pgmaster-rebase-20260604`.
+- Fetch the GitHub `postgre_umbra` branch with the same name.
+- Record both SHAs before work and verify they match.
+- If the Gitee `postgres` baseline and GitHub `postgre_umbra` same-name branch
+  differ, stop and report both SHAs before continuing.
 - Compare the working branch with the baseline:
 
 ```bash
@@ -52,4 +56,5 @@ git diff --stat <baseline>...HEAD
 - Run the narrowest relevant tests first.
 - For storage/recovery changes, consider focused recovery/regression tests before broad suites.
 - For performance-sensitive changes, record why the change should be neutral or name the benchmark needed.
-- Compare final `HEAD` against the baseline and list only the experiment commits as expected differences.
+- Compare final `HEAD` against the Gitee `postgres` baseline and list only the experiment commits as expected differences.
+- Re-check that the Gitee baseline SHA matches the GitHub `postgre_umbra` same-name branch SHA.

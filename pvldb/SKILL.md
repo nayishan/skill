@@ -7,7 +7,12 @@ description: Audit, plan, implement, and review PVLDB experiment-driven Umbra ch
 
 ## Core Rule
 
-Treat `umbra-poc-pgmaster-rebase-20260604` as the protected Umbra baseline. Every PVLDB experiment branch must differ from that baseline only by the commits that implement the explicit experiment requirement.
+Treat the Gitee `postgres` branch
+`origin/umbra-poc-pgmaster-rebase-20260604` in
+`/Users/jiamingwei/gitCode/postgres` as the protected Umbra baseline. Every
+PVLDB experiment branch must differ from that baseline only by the commits that
+implement the explicit experiment requirement. This baseline branch must stay
+commit-identical to the GitHub `postgre_umbra` branch with the same name.
 
 Before editing code, read the relevant requirement files under:
 
@@ -23,21 +28,30 @@ the audit.
 
 ## Baseline Discipline
 
-Use the user's requested remote when specified. If unspecified, prefer the GitHub remote branch named `umbra-poc-pgmaster-rebase-20260604`; if no GitHub remote exists in the current repo, report that and use the configured remote only after the user confirms or local context makes it clearly intended.
+Use the user's requested remote when specified. If unspecified, use the Gitee
+remote branch `origin/umbra-poc-pgmaster-rebase-20260604` from
+`/Users/jiamingwei/gitCode/postgres` as the baseline. Verify that it is
+commit-identical to the GitHub `postgre_umbra` branch
+`origin/umbra-poc-pgmaster-rebase-20260604` before relying on it. If those
+branches differ, stop and report both SHAs before auditing or implementing an
+experiment.
 
 At the start of each task:
 
 1. Check the current repository, remotes, current branch, and worktree state.
-2. Fetch/prune the baseline remote branch.
-3. Record the exact baseline SHA.
-4. Compare the experiment branch to the baseline with `git rev-list --left-right --count` and `git log --cherry-pick --right-only`.
-5. Identify which commits are experiment commits and which commits are accidental drift.
+2. Fetch/prune the Gitee `postgres` baseline branch.
+3. Fetch/prune the GitHub `postgre_umbra` branch with the same name.
+4. Record both exact SHAs and verify they match.
+5. Compare the experiment branch to the Gitee `postgres` baseline with `git rev-list --left-right --count` and `git log --cherry-pick --right-only`.
+6. Identify which commits are experiment commits and which commits are accidental drift.
 
 At the end of each task:
 
 1. Re-run the baseline comparison.
-2. Verify all non-experiment commits match the protected baseline.
-3. Summarize the baseline SHA, experiment commits, and any residual drift.
+2. Re-check that the Gitee `postgres` baseline SHA still matches the GitHub
+   `postgre_umbra` same-name branch SHA.
+3. Verify all non-experiment commits match the protected baseline.
+4. Summarize the baseline SHA, GitHub parity SHA, experiment commits, and any residual drift.
 
 Prefer creating a new experiment branch over rewriting an existing shared branch. Rewrite/reset an existing branch only when the user explicitly asks.
 
@@ -77,7 +91,7 @@ When uncertain whether a change affects performance, inspect the call path and n
 For each PVLDB task, report:
 
 - Requirement files read.
-- Baseline remote and SHA used.
+- Baseline remote and SHA used, plus the GitHub `postgre_umbra` parity SHA.
 - Experiment branch name and experiment commits.
 - Audit conclusions and rejected risky interpretations.
 - Implementation summary, tests run, and any tests not run.
