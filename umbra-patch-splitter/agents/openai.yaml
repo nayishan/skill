@@ -1,0 +1,6 @@
+interface:
+  display_name: "Umbra Patch Splitter"
+  short_description: "Split Umbra RFC patches for review"
+  default_prompt: "Use $umbra-patch-splitter to split this Umbra RFC branch into reviewable PostgreSQL patches and improve the patch messages."
+policy:
+  allow_implicit_invocation: true
