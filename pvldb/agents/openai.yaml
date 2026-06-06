@@ -1,0 +1,7 @@
+interface:
+  display_name: "PVLDB"
+  short_description: "Audit PVLDB Umbra experiments"
+  default_prompt: "Use $pvldb to audit the experiment requirements and keep Umbra changes aligned with the protected baseline."
+
+policy:
+  allow_implicit_invocation: true
