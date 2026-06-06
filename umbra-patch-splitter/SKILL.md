@@ -35,6 +35,7 @@ git diff --stat <base>..HEAD
 ```text
 /Users/jiamingwei/Desktop/umbra-community/V3_REVIEW_BURDEN.md
 /Users/jiamingwei/Desktop/umbra-community/PATCH_SPLIT_NOTES.md
+/Users/jiamingwei/Desktop/umbra-community/DEFERRED_OLD_PATCH_ITEMS.md
 /Users/jiamingwei/Desktop/umbra-community/FORK_ABSTRACTION_DISCUSSION.md
 /Users/jiamingwei/Desktop/umbra-community/REMAP_CHECKPOINT_BUG_NOTES_ZH.md
 ```
@@ -187,6 +188,8 @@ into every commit.
    - If correctness relies on later patches, say so explicitly or move the code
      later.
    - Prefer small local fixes over broad infrastructure when both are correct.
+   - When old-patch material is deferred, excluded, or still unaudited, update
+     `/Users/jiamingwei/Desktop/umbra-community/DEFERRED_OLD_PATCH_ITEMS.md`.
 
 5. Move code by boundary, not by filename alone.
    - A file can contain hunks for multiple patches.
@@ -202,6 +205,31 @@ into every commit.
 7. Write or amend commit messages using the template.
 
 8. Validate after each meaningful restack.
+
+## Deferred Old Patch Inventory
+
+Maintain this working note:
+
+```text
+/Users/jiamingwei/Desktop/umbra-community/DEFERRED_OLD_PATCH_ITEMS.md
+```
+
+Use it only for material from old Umbra RFC patches that is not yet in the new
+split branch, or that is intentionally kept out of the current new patch.
+Do not use it for general design discussion, current patch scope, validation
+logs, or broad implementation plans.
+
+Update it whenever a split, audit, or restack decides that an old item is:
+
+- deferred to a later patch;
+- excluded from the split series in its old form;
+- still unaudited and must not be silently forgotten;
+- resolved because it moved into a new patch, was removed, or was superseded.
+
+For each entry, record the old source patch or branch, the item, its current
+disposition, why it is not in the current new patch, the expected destination if
+known, and status.  Keep `PATCH_SPLIT_NOTES.md` for narrative decisions; keep
+`DEFERRED_OLD_PATCH_ITEMS.md` as the deferred/excluded old-patch inventory.
 
 ## Validation Checklist
 
