@@ -11,6 +11,17 @@
 - For simple questions, answer directly and briefly.
 - For code changes, make the smallest scoped patch that satisfies the request.
 
+## Communication Rule
+
+- When stating a problem or answer, start with the main conclusion.
+- Immediately give the core logic that supports the conclusion.
+- Put concrete details, caveats, and examples after that.
+- Avoid long setup, repeated framing, and unnecessary explanation.
+- For simple questions, use plain language and say only what matters.
+- Prove the question directly when possible.
+- If the direct proof is unavailable, state exactly what evidence is missing, then check local evidence or search online when that can answer it; ask for help or confirmation only when it cannot be verified directly.
+- Do not introduce a larger side problem, extra proof framework, or unrelated machinery just to work around missing evidence.
+
 ## Git Safe Workflow
 
 - Before answering git questions, inspect the actual repository state with git commands.
