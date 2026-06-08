@@ -1,0 +1,7 @@
+interface:
+  display_name: "Pgmake Build"
+  short_description: "Build PostgreSQL with pgmake in md or Umbra mode"
+  default_prompt: "Use $pgmake-build to compile this PostgreSQL tree with pgmake in md mode or Umbra mode."
+
+policy:
+  allow_implicit_invocation: true

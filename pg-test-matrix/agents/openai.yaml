@@ -1,0 +1,7 @@
+interface:
+  display_name: "Pg Test Matrix"
+  short_description: "Run md and Umbra make-check test matrix"
+  default_prompt: "Use $pg-test-matrix to run the md and Umbra test matrix with make check and recovery make check."
+
+policy:
+  allow_implicit_invocation: true
