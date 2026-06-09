@@ -242,6 +242,27 @@ sudo ./run_<experiment>_linux_strict.sh
   variables as a script defect unless they are true secrets or host-specific
   credentials.
 
+## Fixed Latest Result Rule
+
+Do not make the user chase timestamped `<run_id>` directories for normal use.
+Generated and revised runners should default to a stable latest-result path:
+
+```text
+<exp_dir>/results/current/FINAL_SUMMARY.md
+<exp_dir>/pgdata/current
+```
+
+Rules:
+
+- `RUN_ID` may exist for CSV identity, but its default should be `current`.
+- At startup, remove only the previous stable work directories for this
+  experiment, then recreate them before writing headers.
+- The cleanup must be path-guarded: refuse empty paths, symlinks, `/`, parent
+  directories, and paths outside the expected experiment results/pgdata roots.
+- The final log should print the fixed `FINAL_SUMMARY.md` path.
+- If historical retention is needed, make it an explicit opt-in archive mode,
+  not the default.
+
 The runner should generate a result root containing raw files, but the user should normally need to read only:
 
 ```text

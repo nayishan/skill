@@ -11,7 +11,7 @@ BASE_DIR="${BASE_DIR:-}"
 EXP_DIR="${EXP_DIR:-}"
 PG_PORT="${PG_PORT:-55437}"
 STAMP="$(date +%Y%m%d_%H%M%S)"
-MATRIX_NAME="${MATRIX_NAME:-${EXP_NAME}_${RUN_MODE}_${STAMP}}"
+MATRIX_NAME="${MATRIX_NAME:-current}"
 RESULT_ROOT="${RESULT_ROOT:-}"
 PGDATA_ROOT="${PGDATA_ROOT:-}"
 FINAL_SUMMARY=""
@@ -50,6 +50,25 @@ default_table_rows() {
         linux_paper:paper) printf '%s' "100000000" ;;
         *) printf '%s' "1000000" ;;
     esac
+}
+
+safe_remove_workdir() {
+    local path="$1"
+    local expected_parent="$2"
+
+    [ -n "$path" ] || die "refusing to remove empty path"
+    [ -n "$expected_parent" ] || die "refusing to remove path without expected parent"
+    case "$path" in
+        "$expected_parent"/*)
+            ;;
+        *)
+            die "refusing to remove unexpected path: $path"
+            ;;
+    esac
+    [ "$path" != "$expected_parent" ] || die "refusing to remove parent path: $path"
+    [ "$path" != "/" ] || die "refusing to remove root path"
+    [ ! -L "$path" ] || die "refusing to remove symlink: $path"
+    rm -rf "$path"
 }
 
 have_cmd() {
@@ -156,6 +175,9 @@ configure_paths() {
     RESULT_ROOT="${RESULT_ROOT:-$EXP_DIR/results/$MATRIX_NAME}"
     PGDATA_ROOT="${PGDATA_ROOT:-$EXP_DIR/pgdata/$MATRIX_NAME}"
     FINAL_SUMMARY="$RESULT_ROOT/FINAL_SUMMARY.md"
+    mkdir -p "$EXP_DIR/results" "$EXP_DIR/pgdata"
+    safe_remove_workdir "$RESULT_ROOT" "$EXP_DIR/results"
+    safe_remove_workdir "$PGDATA_ROOT" "$EXP_DIR/pgdata"
     mkdir -p "$RESULT_ROOT" "$PGDATA_ROOT"
 }
 
