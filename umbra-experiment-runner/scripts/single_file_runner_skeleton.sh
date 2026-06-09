@@ -9,7 +9,7 @@ EXP_NAME="${EXP_NAME:-umbra_experiment}"
 OS_USER="${OS_USER:-jiamingwei}"
 BASE_DIR="${BASE_DIR:-}"
 EXP_DIR="${EXP_DIR:-}"
-PG_PORT="${PG_PORT:-5432}"
+PG_PORT="${PG_PORT:-55437}"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 MATRIX_NAME="${MATRIX_NAME:-${EXP_NAME}_${RUN_MODE}_${STAMP}}"
 RESULT_ROOT="${RESULT_ROOT:-}"
@@ -20,6 +20,8 @@ LINUX_TPCC_CLIENTS="${LINUX_TPCC_CLIENTS:-10 50 200 500 1000}"
 MAC_SMOKE_CLIENTS="${MAC_SMOKE_CLIENTS:-1}"
 PG_BRANCH_MAC="${PG_BRANCH_MAC:-umbra-poc-pgmaster-rebase-20260604}"
 VERSIONS_LIST="${VERSIONS_LIST:-mdonrelease umrelease mdoffrelease}"
+DATA_PROFILE="${DATA_PROFILE:-quick}"  # quick | paper
+TABLE_ROWS="${TABLE_ROWS:-auto}"
 
 LABEL=""
 FULL_PAGE_WRITES=""
@@ -35,6 +37,19 @@ log() {
 die() {
     log "ERROR: $*"
     exit 1
+}
+
+default_table_rows() {
+    if [ "$TABLE_ROWS" != "auto" ]; then
+        printf '%s' "$TABLE_ROWS"
+        return
+    fi
+    case "$RUN_MODE:$DATA_PROFILE" in
+        mac_smoke:*) printf '%s' "10000" ;;
+        linux_paper:quick) printf '%s' "1000000" ;;
+        linux_paper:paper) printf '%s' "100000000" ;;
+        *) printf '%s' "1000000" ;;
+    esac
 }
 
 have_cmd() {
@@ -88,6 +103,7 @@ resolve_paths_for_job() {
 }
 
 write_manifest() {
+    TABLE_ROWS="$(default_table_rows)"
     {
         printf 'experiment=%s\n' "$EXP_NAME"
         printf 'run_mode=%s\n' "$RUN_MODE"
@@ -101,10 +117,13 @@ write_manifest() {
         printf 'timestamp=%s\n' "$STAMP"
         printf 'uname=%s\n' "$(uname -a)"
         printf 'versions=%s\n' "$VERSIONS_LIST"
+        printf 'data_profile=%s\n' "$DATA_PROFILE"
+        printf 'table_rows=%s\n' "$TABLE_ROWS"
         printf 'linux_tpcc_clients=%s\n' "$LINUX_TPCC_CLIENTS"
         printf 'mac_smoke_clients=%s\n' "$MAC_SMOKE_CLIENTS"
         printf 'mac_reference_branch=%s\n' "$PG_BRANCH_MAC"
         printf 'linux_path_convention=%s\n' 'experiment1_run_p0_linux_strict'
+        printf 'normal_command=%s\n' "$([ "$RUN_MODE" = "linux_paper" ] && printf 'sudo ./run_<experiment>_strict.sh' || printf './run_<experiment>_strict.sh')"
     } > "$RESULT_ROOT/manifest.txt"
 }
 

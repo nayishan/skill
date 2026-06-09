@@ -15,19 +15,29 @@ Use this skill to write or audit Umbra experiment automation. Treat correctness 
 4. Preserve raw evidence, but make the final answer inspectable from one summary file.
 5. Make Linux the authoritative paper environment. Use macOS only for smoke validation that the script starts, builds, runs basic SQL, writes results, and fails cleanly.
 
-## Required Modes
+## Paper And Smoke Modes
 
-Every generated runner should expose explicit modes:
+Generated runners must make the paper/smoke boundary explicit. This can be done
+with one script exposing modes:
 
 ```text
 RUN_MODE=linux_paper   # authoritative final experiment mode
 RUN_MODE=mac_smoke     # local harness validation only
 ```
 
+or with two clearly named scripts, for example:
+
+```text
+run_<experiment>_linux_strict.sh   # authoritative Linux paper runner
+run_<experiment>_mac_pilot.sh      # local macOS smoke runner only
+```
+
 Rules:
 
 - `linux_paper` is the only mode that can produce paper evidence.
 - `mac_smoke` may use the local PostgreSQL source tree and the branch `umbra-poc-pgmaster-rebase-20260604`, but must be labeled smoke-only in the summary.
+- Separate Linux and macOS scripts are acceptable, and often preferable, when
+  they keep the Linux paper path simpler and avoid mode-condition clutter.
 - Do not silently substitute macOS smoke results for Linux paper results.
 - Do not modify the user's PostgreSQL source tree branch without checking worktree status first.
 
@@ -107,12 +117,56 @@ path reference, not a generic TPC-C script:
 OS_USER="${OS_USER:-jiamingwei}"
 BASE_DIR="${BASE_DIR:-/home/jiamingwei}"
 EXP_DIR="${EXP_DIR:-$BASE_DIR/<experiment_root>}"
-PG_PORT="${PG_PORT:-5432}"
+PG_PORT="${PG_PORT:-55437}"
 
 MATRIX_NAME="${MATRIX_NAME:-<short_name>_$(date +%Y%m%d_%H%M)}"
 RESULT_ROOT="$EXP_DIR/results/$MATRIX_NAME"
 PGDATA_ROOT="$EXP_DIR/pgdata/$MATRIX_NAME"
 ```
+
+Use the dedicated high port `55437` by default for isolated experiment runners
+to avoid conflicts with developer or system PostgreSQL instances. The runner
+must record the resolved `PG_PORT` in the manifest and summary.
+
+For long Linux paper runs, do not assume all large files fit under `/home`.
+Follow the Exp5 disk-space pattern unless the target experiment explicitly
+requires a different layout:
+
+```bash
+HEAVY_ROOT="${HEAVY_ROOT:-/mnt/nvme2T/<experiment_root>}"
+RESULT_ROOT="${RESULT_ROOT:-$EXP_DIR/results/$MATRIX_NAME}"
+PGDATA_ROOT="${PGDATA_ROOT:-$HEAVY_ROOT/pgdata/$MATRIX_NAME}"
+ARCHIVE_ROOT="${ARCHIVE_ROOT:-$HEAVY_ROOT/archive/$MATRIX_NAME}"       # if WAL archive is used
+TARGET_ROOT="${TARGET_ROOT:-$HEAVY_ROOT/targets/$MATRIX_NAME}"         # if generated targets are used
+```
+
+Rules:
+
+- `RESULT_ROOT` contains retained evidence and summaries. Keep it small enough
+  to preserve after the run.
+- `PGDATA_ROOT`, `ARCHIVE_ROOT`, `LOADED_BACKUP_ROOT`, and similar roots are
+  work directories for large files. Treat them as temporary unless the
+  experiment explicitly declares a retention mode.
+- Before a long job starts, run a disk-capacity preflight for every distinct
+  filesystem used by result, PGDATA, WAL/archive, backups, and target files.
+  If the budget does not fit with headroom, fail before the workload starts.
+- Record root paths, resolved devices, filesystems, mount points, and available
+  bytes in the manifest and final summary.
+- Prefer retaining parsed evidence (`FINAL_SUMMARY.md`, CSV/TSV, logs,
+  `waldump_*.out`, `waldump_*.err`) over retaining full PGDATA or full WAL
+  archives.
+- If WAL archive is needed only to protect `pg_waldump`, archive segments may be
+  deleted after `pg_waldump` succeeds and raw waldump output is preserved.
+- Cleanup must be scoped to the current matrix/job work directory. Never delete
+  `EXP_DIR`, `HEAVY_ROOT`, `RESULT_ROOT`, a mount point, `/`, an empty path, or
+  a path outside the expected root.
+- Cleanup helpers must reject symlinks and parent directories, and should remove
+  only paths matching the current `$MATRIX_NAME` and, for per-job cleanup, the
+  current `$JOB_ID`.
+- On failure, default to preserving `RESULT_ROOT` evidence and removing large
+  workdirs only after the failure reason, logs, and raw evidence needed for
+  diagnosis have been copied to `JOB_DIR`. If preserving failed PGDATA/archive is
+  requested, require disk-capacity preflight for that retention mode.
 
 Version binaries should normally resolve like Experiment 1:
 
@@ -151,6 +205,42 @@ Prefer one self-contained shell runner per experiment:
 ```text
 run_<experiment>_strict.sh
 ```
+
+## Zero-Parameter Run Rule
+
+Generated and revised runners must be directly runnable with one command. Do
+not require the user to supply ordinary runtime parameters such as row counts,
+ports, result paths, version lists, client matrices, or PostgreSQL binary roots
+just to get the runner started.
+
+Rules:
+
+- Environment variables are override knobs only. Every knob used by the runner
+  must have a useful default or an auto-detected value.
+- Do not use fail-sentinel defaults such as `TABLE_ROWS=0` when validation then
+  exits with "TABLE_ROWS must be set". Pick a conservative default, derive the
+  value from a target size, or make the default a documented quick/smoke
+  profile.
+- Positional command-line arguments must not be required for normal execution.
+- The normal commands must be shaped like:
+
+```bash
+./run_<experiment>_mac_pilot.sh
+sudo ./run_<experiment>_linux_strict.sh
+```
+
+- If Linux paper mode needs root, specific version binaries, a Linux-only
+  kernel interface, or a large disk, the script must check those prerequisites
+  itself and write a parseable failure row plus `FINAL_SUMMARY.md`.
+- Missing prerequisites should produce an actionable failure summary with the
+  resolved path or setting that was missing. Do not hand the user a list of
+  parameters to re-run manually.
+- For large paper runs, include a default paper profile and a smaller local
+  smoke/debug profile. The default must still start without asking the user for
+  parameters, and the summary must label the evidence level.
+- When auditing an existing runner, treat required user-supplied environment
+  variables as a script defect unless they are true secrets or host-specific
+  credentials.
 
 The runner should generate a result root containing raw files, but the user should normally need to read only:
 
@@ -242,6 +332,7 @@ Avoid:
 
 - Python/R/notebooks by default;
 - manual post-run inspection as a required step;
+- required runtime parameters for ordinary execution;
 - sleeps as proof of WAL flush or checkpoint position;
 - destructive operations outside the experiment result directory;
 - averaging correctness cases into a single score;
@@ -259,4 +350,5 @@ which validity gates are implemented
 which claims are still blocked by missing hooks or interfaces
 how to run the single command
 where FINAL_SUMMARY.md will be written
+which defaults were auto-selected
 ```
